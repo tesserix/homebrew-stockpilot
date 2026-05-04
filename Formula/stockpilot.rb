@@ -10,8 +10,8 @@
 class Stockpilot < Formula
   desc "Command-line client and bundled MCP server for StockPilot"
   homepage "https://stockpilot.tesserix.app"
-  url "https://github.com/tesserix/stock-analysis/archive/refs/tags/cli-v0.0.2.tar.gz"
-  sha256 "94c18aea9d5354c82f155ae8ffc51a77850bb6df543bc77d80b6b310268acbc7"
+  url "https://github.com/tesserix/stock-analysis/archive/refs/tags/cli-v0.0.3.tar.gz"
+  sha256 "45f0f9d376da6949fbb25c89668b218a0666f55fcd02fe4daa1208210a95e622"
   license "Apache-2.0"
   head "https://github.com/tesserix/stock-analysis.git", branch: "main"
 
