@@ -352,8 +352,8 @@ class Stockpilot < Formula
 
   test do
     assert_match "StockPilot CLI", shell_output("#{bin}/stockpilot --help")
-    # ``stockpilot config`` reads on-disk state and never touches the
+    # ``auth config`` reads on-disk state and never touches the
     # network, so it's safe inside Homebrew's sandboxed test runner.
-    system bin/"stockpilot", "config"
+    system bin/"stockpilot", "auth", "config"
   end
 end
