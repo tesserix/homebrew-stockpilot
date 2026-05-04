@@ -285,11 +285,14 @@ class Stockpilot < Formula
   end
 
   def install
-    # The CLI source lives under cli/ in the monorepo; cd in so
-    # ``virtualenv_install_with_resources`` finds pyproject.toml.
-    cd "cli" do
-      virtualenv_install_with_resources
-    end
+    # virtualenv_install_with_resources hard-codes ``--no-binary :all:``,
+    # which forces every dep to compile from sdist (15+ minutes for the
+    # pydantic_core / cryptography Rust extensions). The resources above
+    # already point at platform-specific wheels, so we drive ``pip
+    # install`` ourselves with ``binary: true`` to keep the install fast.
+    venv = virtualenv_create(libexec, "python3.12")
+    resources.each { |r| venv.pip_install(r, binary: true) }
+    venv.pip_install_and_link(buildpath/"cli", binary: true)
   end
 
   test do
