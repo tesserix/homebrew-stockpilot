@@ -291,18 +291,28 @@ class Stockpilot < Formula
     python = Formula["python@3.12"].opt_bin/"python3.12"
     system python, "-m", "venv", libexec
 
+    # Brew's cache rewrites filenames to ``<sha>--<name>-<ver>-…`` and
+    # drops the extension, so pip can no longer tell wheel from sdist.
+    # Symlink each cached download to its original PyPI filename in a
+    # staging dir before handing the lot to pip in a single call.
+    require "uri"
+    wheels = buildpath/"wheels"
+    wheels.mkpath
     resources.each do |r|
       r.fetch
-      system libexec/"bin/pip", "install", "--no-deps",
-             "--no-build-isolation", "--ignore-installed", "--no-compile",
-             "--disable-pip-version-check", r.cached_download
+      filename = File.basename(URI.parse(r.url).path)
+      File.symlink(r.cached_download, wheels/filename)
     end
+
+    pip = libexec/"bin/pip"
+    args = ["install", "--no-deps", "--no-build-isolation",
+            "--ignore-installed", "--no-compile",
+            "--disable-pip-version-check"]
+    system pip, *args, *Dir["#{wheels}/*"]
 
     # Install the CLI itself from the unpacked source tree.
     cd "cli" do
-      system libexec/"bin/pip", "install", "--no-deps",
-             "--no-build-isolation", "--ignore-installed", "--no-compile",
-             "--disable-pip-version-check", "."
+      system pip, *args, "."
     end
 
     bin.install_symlink Dir["#{libexec}/bin/stockpilot*"]
