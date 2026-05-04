@@ -8,8 +8,6 @@
 # the next release; bump deps in cli/pyproject.toml instead and let the
 # generator script (cli/scripts/gen-brew-resources.py) re-resolve them.
 class Stockpilot < Formula
-  include Language::Python::Virtualenv
-
   desc "Command-line client and bundled MCP server for StockPilot"
   homepage "https://stockpilot.tesserix.app"
   url "https://github.com/tesserix/stock-analysis/archive/refs/tags/cli-v0.0.1.tar.gz"
@@ -17,8 +15,6 @@ class Stockpilot < Formula
   license "Apache-2.0"
   head "https://github.com/tesserix/stock-analysis.git", branch: "main"
 
-  # cryptography's sdist requires cargo at build time.
-  depends_on "rust" => :build
   depends_on "python@3.12"
 
   resource "annotated_doc" do
@@ -285,23 +281,31 @@ class Stockpilot < Formula
   end
 
   def install
-    # Homebrew's ``virtualenv_install_with_resources`` and
-    # ``Virtualenv#pip_install`` both hard-code ``--no-binary :all:``,
-    # forcing every dep to rebuild from sdist — that's a 15+ minute
-    # compile because pydantic_core / cryptography / cffi / rpds-py
-    # all carry native code. The resources above already point at
-    # platform-specific wheels, so install them via pip directly.
-    venv = virtualenv_create(libexec, "python3.12")
+    # We deliberately don't use ``Language::Python::Virtualenv``: it
+    # creates the venv with ``--without-pip`` and then drives a brew-
+    # vendored pip that hard-codes ``--no-binary :all:``, forcing every
+    # dep to rebuild from sdist (15+ min for pydantic_core /
+    # cryptography / cffi / rpds-py). Our resources above already point
+    # at the right per-platform wheels, so we just need a venv with pip
+    # in it and a one-shot install loop.
+    python = Formula["python@3.12"].opt_bin/"python3.12"
+    system python, "-m", "venv", libexec
+
     resources.each do |r|
       r.fetch
-      system libexec/"bin/pip", "install", "-v", "--no-deps",
+      system libexec/"bin/pip", "install", "--no-deps",
              "--no-build-isolation", "--ignore-installed", "--no-compile",
-             r.cached_download
+             "--disable-pip-version-check", r.cached_download
     end
-    # The CLI itself is a pure-Python package; pip_install_and_link
-    # is fine here (it builds a wheel from buildpath/cli and links
-    # bin/stockpilot into Homebrew's bin path).
-    venv.pip_install_and_link(buildpath/"cli")
+
+    # Install the CLI itself from the unpacked source tree.
+    cd "cli" do
+      system libexec/"bin/pip", "install", "--no-deps",
+             "--no-build-isolation", "--ignore-installed", "--no-compile",
+             "--disable-pip-version-check", "."
+    end
+
+    bin.install_symlink Dir["#{libexec}/bin/stockpilot*"]
   end
 
   test do
