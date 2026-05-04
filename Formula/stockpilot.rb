@@ -280,6 +280,38 @@ class Stockpilot < Formula
     sha256 "bbebbcbed972d162afca128605223022bedd345b7bc7855ce66deb31487a9048"
   end
 
+  # Build backend (used only when installing the CLI itself, not
+  # part of its runtime imports). Versions pinned at release time.
+  resource "hatchling" do
+    url "https://files.pythonhosted.org/packages/d3/8a/44032265776062a89171285ede55a0bdaadc8ac00f27f0512a71a9e3e1c8/hatchling-1.29.0-py3-none-any.whl"
+    sha256 "50af9343281f34785fab12da82e445ed987a6efb34fd8c2fc0f6e6630dbcc1b0"
+  end
+
+  resource "pluggy" do
+    url "https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl"
+    sha256 "e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746"
+  end
+
+  resource "packaging" do
+    url "https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl"
+    sha256 "5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e"
+  end
+
+  resource "pathspec" do
+    url "https://files.pythonhosted.org/packages/f1/d9/7fb5aa316bc299258e68c73ba3bddbc499654a07f151cba08f6153988714/pathspec-1.1.1-py3-none-any.whl"
+    sha256 "a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189"
+  end
+
+  resource "trove-classifiers" do
+    url "https://files.pythonhosted.org/packages/d6/bb/fbdc4e57731efb86b4209ffdd2519520782bf27b3c961beac3e5c20d2b87/trove_classifiers-2026.4.28.13-py3-none-any.whl"
+    sha256 "8f4b1eb4e16296b57d612965444f87a83861cc989a0451ac97fe4265ddef03b8"
+  end
+
+  resource "editables" do
+    url "https://files.pythonhosted.org/packages/cc/0e/d095533037fc9468f947b19f2da53f869804632b508808de41e86e801797/editables-0.6-py3-none-any.whl"
+    sha256 "d70e4698078a1d033e7786d9c64e5be070d058a67c21417024d38a58ac20aa43"
+  end
+
   def install
     # We deliberately don't use ``Language::Python::Virtualenv``: it
     # creates the venv with ``--without-pip`` and then drives a brew-
