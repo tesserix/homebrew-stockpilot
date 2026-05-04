@@ -285,14 +285,23 @@ class Stockpilot < Formula
   end
 
   def install
-    # virtualenv_install_with_resources hard-codes ``--no-binary :all:``,
-    # which forces every dep to compile from sdist (15+ minutes for the
-    # pydantic_core / cryptography Rust extensions). The resources above
-    # already point at platform-specific wheels, so we drive ``pip
-    # install`` ourselves with ``binary: true`` to keep the install fast.
+    # Homebrew's ``virtualenv_install_with_resources`` and
+    # ``Virtualenv#pip_install`` both hard-code ``--no-binary :all:``,
+    # forcing every dep to rebuild from sdist — that's a 15+ minute
+    # compile because pydantic_core / cryptography / cffi / rpds-py
+    # all carry native code. The resources above already point at
+    # platform-specific wheels, so install them via pip directly.
     venv = virtualenv_create(libexec, "python3.12")
-    resources.each { |r| venv.pip_install(r, binary: true) }
-    venv.pip_install_and_link(buildpath/"cli", binary: true)
+    resources.each do |r|
+      r.fetch
+      system libexec/"bin/pip", "install", "-v", "--no-deps",
+             "--no-build-isolation", "--ignore-installed", "--no-compile",
+             r.cached_download
+    end
+    # The CLI itself is a pure-Python package; pip_install_and_link
+    # is fine here (it builds a wheel from buildpath/cli and links
+    # bin/stockpilot into Homebrew's bin path).
+    venv.pip_install_and_link(buildpath/"cli")
   end
 
   test do
